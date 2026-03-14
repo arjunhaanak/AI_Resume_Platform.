@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scikit-learn
+pdfminer.six
+sentence-transformers
+python-multipart
+google-generativeai
+python-dotenv
+g4f
+curl_cffi
