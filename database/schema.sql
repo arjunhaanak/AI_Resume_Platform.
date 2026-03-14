@@ -1,44 +1,28 @@
--- Core Entity: Users
-CREATE TABLE users (
+-- 🚀 AI Resume Platform - Database Schema
+-- Run this in pgAdmin Query Tool to set up your database
+
+-- 1. Create Users Table (For authentication and profile management)
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(120),
-    email VARCHAR(120) UNIQUE,
-    password TEXT,
-    role VARCHAR(20) DEFAULT 'user',
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Core Entity: Resumes (includes vector embeddings for FAANG-level matching)
-CREATE TABLE resumes (
+-- 2. Create Resumes Table (Stores analysis results, scan history, and admin tracking)
+CREATE TABLE IF NOT EXISTS resumes (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    resume_file TEXT,
-    parsed_text TEXT,
-    parsed_skills JSONB,
-    experience_years INT,
-    education TEXT,
-    -- Store embedding vector as JSON/Array (if using pgvector, this would be vector(384) or similar)
-    embedding_vector JSONB, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_id INT REFERENCES users(id) ON DELETE CASCADE, -- Optional: links resume to a specific user
+    filename VARCHAR(255) NOT NULL,
+    ats_score DECIMAL(5,2),
+    summary TEXT,           -- Stores JSON-stringified: {skills, missingSkills, matches}
+    recommendations TEXT,    -- Stores the full 10-point AI career coach message
+    company_name VARCHAR(255) DEFAULT 'Unknown Company',
+    job_title VARCHAR(255) DEFAULT 'Software Engineer',
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Core Entity: Jobs 
-CREATE TABLE jobs (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(200),
-    description TEXT,
-    required_skills JSONB,
-    location VARCHAR(120),
-    salary_range VARCHAR(120),
-    job_embedding JSONB, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Matches Tracking
-CREATE TABLE matches (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
-    match_score FLOAT, -- ATS Score %
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- 💡 Pro Tip: To reset your database during development, you can run:
+-- DROP TABLE resumes;
+-- DROP TABLE users;

@@ -30,15 +30,21 @@ router.post("/upload", upload.single("resume"), async (req, res) => {
 
     // 💾 SAVE TO DATABASE
     const queryText = `
-      INSERT INTO resumes (filename, ats_score, summary, recommendations)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO resumes (filename, ats_score, summary, recommendations, company_name, job_title)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
     const queryValues = [
       req.file.filename,
       results.ats_score,
-      "AI Generated Summary", // You can expand this if you have a separate summary field
-      results.recommendations
+      JSON.stringify({
+        skills: results.skills,
+        missingSkills: results.missingSkills,
+        matches: results.matches
+      }),
+      results.recommendations,
+      results.company_name || "Unknown Company",
+      results.job_title || "Software Engineer"
     ];
 
     await db.query(queryText, queryValues);
@@ -60,6 +66,18 @@ router.post("/upload", upload.single("resume"), async (req, res) => {
   } catch (error) {
     console.error("Pipeline Communication Error: ", error.message);
     res.status(500).json({ error: "Failed to process resume dynamically." });
+  }
+});
+
+// GET Resume History
+router.get("/history", async (req, res) => {
+  try {
+    const queryText = "SELECT * FROM resumes ORDER BY uploaded_at DESC";
+    const { rows } = await db.query(queryText);
+    res.json({ success: true, count: rows.length, data: rows });
+  } catch (error) {
+    console.error("History Fetch Error:", error.message);
+    res.status(500).json({ error: "Failed to fetch history" });
   }
 });
 
